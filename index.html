@@ -2,167 +2,221 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master P4 English - AI 8B Edition</title>
+    <title>P4 AI English Master - 3B Edition</title>
     <script type="module">
         import { CreateMLCEngine } from "https://esm.run/@mlc-ai/web-llm";
         window.CreateMLCEngine = CreateMLCEngine;
     </script>
     <style>
-        :root { --primary: #4834d4; --secondary: #686de0; --accent: #f0932b; --light: #f9f9f9; }
-        body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #edeff2; margin: 0; color: #2d3436; }
+        :root { --p: #0984e3; --s: #00cec9; --bg: #f0f2f5; --panel: #ffffff; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Loading & UI */
-        #loader { position: fixed; inset: 0; background: white; z-index: 999; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center; }
-        .bar-bg { width: 80%; max-width: 500px; height: 12px; background: #eee; border-radius: 10px; margin: 20px 0; overflow: hidden; border: 1px solid #ddd; }
-        #bar-fill { width: 0%; height: 100%; background: linear-gradient(90deg, var(--primary), var(--secondary)); transition: 0.4s; }
-        
-        #app { display: none; height: 100vh; flex-direction: column; }
-        header { background: var(--primary); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        
-        .main { display: flex; flex: 1; overflow: hidden; padding: 20px; gap: 20px; }
-        .panel { flex: 1; background: white; border-radius: 16px; display: flex; flex-direction: column; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid #e0e0e0; }
-        .content { padding: 25px; overflow-y: auto; flex: 1; }
-        
-        /* Elements */
-        .btn { padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; background: var(--primary); color: white; }
-        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
-        .btn-new { background: white; color: var(--primary); border: 2px solid var(--primary); }
-        
-        .q-box { background: var(--light); padding: 15px; border-radius: 12px; margin-bottom: 15px; border-left: 6px solid var(--secondary); }
-        input[type="text"] { width: 100%; padding: 12px; margin-top: 10px; border: 2px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        
-        #ai-feedback { margin-top: 20px; padding: 20px; border-radius: 12px; background: #f1f2f6; display: none; line-height: 1.6; border: 1px solid #dfe4ea; }
-        .story-p { font-size: 1.15rem; line-height: 1.8; color: #333; margin-bottom: 20px; }
-        
-        @media (max-width: 900px) { .main { flex-direction: column; } }
+        /* Initial Loading */
+        #loader { position: fixed; inset: 0; background: white; z-index: 2000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .progress-container { width: 350px; height: 12px; background: #eee; border-radius: 10px; margin: 20px; overflow: hidden; border: 1px solid #ddd; }
+        #bar { width: 0%; height: 100%; background: linear-gradient(90deg, var(--p), var(--s)); transition: 0.3s; }
+
+        /* Dashboard Layout */
+        .left-panel { flex: 1.2; display: flex; flex-direction: column; padding: 15px; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        .right-panel { flex: 1; display: flex; flex-direction: column; background: #fff; border-left: 1px solid #dcdde1; }
+        .card { background: var(--panel); border-radius: 12px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); display: flex; flex-direction: column; height: 100%; }
+
+        /* Generation Indicators */
+        .status-header { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+        .indicator { font-size: 11px; font-weight: bold; padding: 4px 8px; border-radius: 4px; background: #f1f2f6; color: #7f8c8d; }
+        .indicator.active { background: #e3f2fd; color: var(--p); border: 1px solid var(--p); }
+
+        /* Tabs */
+        .tabs { display: flex; border-bottom: 1px solid #eee; }
+        .tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; font-weight: 600; color: #7f8c8d; }
+        .tab.active { color: var(--p); border-bottom: 3px solid var(--p); background: #f8f9fa; }
+
+        /* Content Areas */
+        #story-box { overflow-y: auto; line-height: 1.8; font-size: 1.1rem; color: #2f3640; flex: 1; }
+        #q-list { overflow-y: auto; flex: 1; padding: 10px 0; }
+        .q-item { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 5px solid var(--s); }
+        input[type="text"] { width: 100%; padding: 10px; margin-top: 8px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+
+        /* Chatbot */
+        #chat-area { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; background: #fdfdfd; }
+        .m { padding: 10px 14px; border-radius: 12px; max-width: 85%; font-size: 0.95rem; }
+        .m-ai { background: #f1f2f6; align-self: flex-start; border-bottom-left-radius: 2px; }
+        .m-user { background: var(--p); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+
+        .hidden { display: none !important; }
+        .btn { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; background: var(--p); color: white; transition: 0.2s; }
+        .btn:hover { opacity: 0.9; }
     </style>
 </head>
 <body>
 
     <div id="loader">
-        <h1 id="loading-title">Summoning AI Tutor (Llama 8B)</h1>
-        <p id="status">Verifying WebGPU hardware...</p>
-        <div class="bar-bg"><div id="bar-fill"></div></div>
-        <p style="max-width: 400px; color: #666; font-size: 0.9rem;">
-            Note: This model is huge (~5GB). It will be fast once it hits 100%. 
-            If it fails, try closing other Chrome tabs.
-        </p>
+        <h2 style="color:var(--p)">Initializing P4 Smart Engine</h2>
+        <p id="l-info">Loading Llama-3.2-3B...</p>
+        <div class="progress-container"><div id="bar"></div></div>
+        <button id="start-btn" class="btn" style="display:none" onclick="launch()">Start Homework Session</button>
     </div>
 
-    <div id="app">
-        <header>
-            <div style="font-size: 1.4rem; font-weight: bold;">P4 Intelligence Hub</div>
-            <button class="btn btn-new" onclick="refreshSession()">🆕 Generate New Reading</button>
-        </header>
-
-        <div class="main">
-            <div class="panel">
-                <div class="content" id="story-container">
-                    <h2 id="title-text">Waiting for Story...</h2>
-                    <div id="story-body"></div>
-                </div>
+    <div class="left-panel" id="reading-side">
+        <div class="card">
+            <div class="status-header">
+                <div id="st-reading" class="indicator">STORY: 0%</div>
+                <div id="st-vocab" class="indicator">VOCAB: 0%</div>
             </div>
+            <h2 id="story-title" style="margin-top:0">New Reading Mission</h2>
+            <div id="story-box">Preparing your text...</div>
+            <button class="btn" style="margin-top:20px" onclick="finishReading()">Hide Reading Panel ➔</button>
+        </div>
+    </div>
 
-            <div class="panel">
-                <div class="content">
-                    <h3>Tasks for You</h3>
-                    <div id="question-area"></div>
-                    
-                    <div id="ai-feedback"></div>
-                    <button class="btn" style="width: 100%; margin-top: 20px; height: 50px;" onclick="checkAnswers()">
-                        Review My English 🔍
-                    </button>
-                </div>
+    <div class="right-panel">
+        <div class="tabs">
+            <div class="tab active" id="tab-q" onclick="showTab('q')">Worksheet</div>
+            <div class="tab" id="tab-c" onclick="showTab('c')">AI Tutor Chat</div>
+        </div>
+
+        <div id="view-q" style="padding:20px; display:flex; flex-direction:column; height:100%; box-sizing:border-box;">
+            <div id="st-grammar" class="indicator" style="width:fit-content; margin-bottom:10px;">GRAMMAR: 0%</div>
+            <div id="q-list"></div>
+            <button class="btn" style="width:100%; background:var(--s)" onclick="checkAnswers()">Analyze My Work</button>
+        </div>
+
+        <div id="view-c" class="hidden" style="display:flex; flex-direction:column; height:100%;">
+            <div id="chat-area"></div>
+            <div style="padding:15px; border-top:1px solid #eee; display:flex; gap:10px;">
+                <input type="text" id="chat-in" placeholder="Ask a question about the rules..." style="flex:1; margin:0">
+                <button class="btn" onclick="sendChat()">Ask</button>
             </div>
         </div>
     </div>
 
     <script>
         let engine;
-        const bar = document.getElementById("bar-fill");
-        const statusText = document.getElementById("status");
+        const modelId = "Llama-3.2-3B-Instruct-q4f16_1-MLC";
+
+        // Textbook logic instructions for the AI
+        const TEACHER_LOGIC = `
+        You are an expert P4 English Teacher following the 'Longman Elect' curriculum style.
+        Rules to enforce:
+        1. PREPOSITIONS: Use 'at' for festivals (at Easter, at Christmas), 'on' for dates (on 5th Jan) and transport (on foot), 'in' for months/years/cities, 'by' for vehicles (by ferry).
+        2. PHRASAL VERBS: Focus on 'broke down', 'grow up', 'fill in', 'do up buttons', 'ring up'.
+        3. TENSES: Distinction between 'Yesterday' (Past Simple) vs 'Nowadays/Now' (Present Simple/Continuous) vs 'Soon/Next month' (Future with 'will' or 'is going to').
+        4. HONG KONG CONTEXT: Use locations like Tai O, Ngong Ping, Macau, or Zhuhai.
+        `;
 
         async function init() {
             try {
-                // High-intelligence model (8B)
-                const modelId = "Llama-3.1-8B-Instruct-q4f32_1-MLC";
-                
                 engine = await window.CreateMLCEngine(modelId, {
-                    initProgressCallback: (report) => {
-                        const percent = Math.round(report.progress * 100);
-                        bar.style.width = percent + "%";
-                        statusText.innerText = `Downloading Intelligence: ${percent}%`;
-                        if (percent === 100) {
-                            setTimeout(() => {
-                                document.getElementById("loader").style.display = "none";
-                                document.getElementById("app").style.display = "flex";
-                                refreshSession();
-                            }, 1000);
-                        }
+                    initProgressCallback: (r) => {
+                        const p = Math.round(r.progress * 100);
+                        document.getElementById("bar").style.width = p + "%";
+                        document.getElementById("l-info").innerText = `Downloading Intelligence: ${p}%`;
+                        if(p === 100) document.getElementById("start-btn").style.display = "block";
                     }
                 });
-            } catch (err) {
-                statusText.innerHTML = `<span style="color:red">Loading Failed:</span> ${err.message}<br>
-                <small>Check if Chrome has WebGPU enabled or try a smaller model like Llama-3.2-3B.</small>`;
-            }
+            } catch (e) { document.getElementById("l-info").innerText = "WebGPU Error!"; }
         }
 
-        async function refreshSession() {
-            const storyBody = document.getElementById("story-body");
-            const qArea = document.getElementById("question-area");
-            document.getElementById("ai-feedback").style.display = "none";
-            
-            storyBody.innerHTML = "<i>AI is thinking of a story...</i>";
-            qArea.innerHTML = "<i>AI is preparing questions...</i>";
+        function launch() {
+            document.getElementById("loader").style.display = "none";
+            generateMission();
+        }
 
-            // 1. Generate Complex Story
-            const storyPrompt = "Write a sophisticated 5-paragraph story for a P4 student about a mystery at a Hong Kong museum. Include words: 'magnificent', 'suspicious', 'investigate'. Do not use emojis.";
-            const storyData = await engine.chat.completions.create({ messages: [{role: "user", content: storyPrompt}] });
-            const text = storyData.choices[0].message.content;
-            
-            document.getElementById("title-text").innerText = "The Museum Mystery";
-            storyBody.innerHTML = `<div class="story-p">${text.replace(/\n/g, '<br>')}</div>`;
-
-            // 2. Generate 20+ Questions (Logic: Request 5, but we can loop or request more)
-            // For performance, we'll ask for 6 varied ones each time (Tense, Prepositions, Vocab)
-            const qPrompt = `Based on the story above, generate 6 challenging questions:
-                2 about Past Tense (e.g., 'What (do) the guard yesterday?'),
-                2 about Prepositions (in/at/on/by/down),
-                2 about Reading Comprehension.
-                Format: Questions only, one per line.`;
-            
-            const qData = await engine.chat.completions.create({ messages: [{role: "user", content: qPrompt}] });
-            const qs = qData.choices[0].message.content.split('\n').filter(l => l.trim().length > 10);
-
-            qArea.innerHTML = "";
-            qs.forEach((q, i) => {
-                qArea.innerHTML += `
-                    <div class="q-box">
-                        <b>Q${i+1}:</b> ${q}
-                        <input type="text" class="user-input" placeholder="Type your answer...">
-                    </div>
-                `;
+        async function generateMission() {
+            // Stage 1: Reading Story (0-100% internal tracker)
+            setIndicator("st-reading", "25%", true);
+            const rRes = await engine.chat.completions.create({
+                messages: [
+                    {role: "system", content: TEACHER_LOGIC + " Write a reading passage about a family trip. Use 1st person 'I'. Keep it to 4-5 paragraphs. Use vocabulary like 'magnificent view' and 'seafood dinner'."},
+                    {role: "user", content: "Generate the story."}
+                ]
             });
+            setIndicator("st-reading", "100%", false);
+            document.getElementById("story-box").innerText = rRes.choices[0].message.content;
+
+            // Stage 2: Questions (Multi-category)
+            setIndicator("st-grammar", "50%", true);
+            const qRes = await engine.chat.completions.create({
+                messages: [
+                    {role: "system", content: TEACHER_LOGIC},
+                    {role: "user", content: "Based on the story provided, generate 12 questions: 4 on Tenses (mix past/present), 4 on Prepositions (at/in/on/by), 4 on Phrasal Verbs. Format: One question per line. No answers."}
+                ]
+            });
+            setIndicator("st-grammar", "100%", false);
+            renderQuestions(qRes.choices[0].message.content);
+        }
+
+        function renderQuestions(text) {
+            const container = document.getElementById("q-list");
+            const lines = text.split("\n").filter(l => l.trim().length > 10);
+            container.innerHTML = lines.map((q, i) => `
+                <div class="q-item">
+                    <b>Q${i+1}.</b> ${q}
+                    <input type="text" class="student-input">
+                </div>
+            `).join("");
+        }
+
+        function setIndicator(id, val, active) {
+            const el = document.getElementById(id);
+            el.innerText = `${id.split('-')[1].toUpperCase()}: ${val}`;
+            if(active) el.classList.add("active"); else el.classList.remove("active");
+        }
+
+        function showTab(t) {
+            document.getElementById("view-q").classList.toggle("hidden", t === 'c');
+            document.getElementById("view-c").classList.toggle("hidden", t === 'q');
+            document.getElementById("tab-q").classList.toggle("active", t === 'q');
+            document.getElementById("tab-c").classList.toggle("active", t === 'c');
+        }
+
+        function finishReading() {
+            const side = document.getElementById("reading-side");
+            side.style.flex = "0";
+            side.style.padding = "0";
+            side.style.margin = "0";
+            side.style.opacity = "0";
+            setTimeout(() => side.classList.add("hidden"), 500);
+        }
+
+        async function sendChat() {
+            const input = document.getElementById("chat-in");
+            if(!input.value) return;
+            addMsg(input.value, 'user');
+            const query = input.value;
+            input.value = "";
+
+            const res = await engine.chat.completions.create({
+                messages: [
+                    {role: "system", content: TEACHER_LOGIC + " Explain rules simply for a 10 year old."},
+                    {role: "user", content: query}
+                ]
+            });
+            addMsg(res.choices[0].message.content, 'ai');
         }
 
         async function checkAnswers() {
-            const feedback = document.getElementById("ai-feedback");
-            feedback.style.display = "block";
-            feedback.innerText = "🤖 Teacher is checking your grammar and logic...";
-
-            const answers = Array.from(document.querySelectorAll(".user-input")).map(i => i.value).join(" | ");
+            showTab('c');
+            addMsg("I'm checking your worksheet now...", 'ai');
+            const inputs = Array.from(document.querySelectorAll(".student-input")).map(i => i.value).join(" | ");
             
-            const checkPrompt = `You are a P4 English Teacher. The student answered these questions: ${answers}. 
-            Review them. If there's a grammar error (especially Tenses or Prepositions), explain why it's wrong and how to fix it. 
-            Be encouraging but strict about grammar rules!`;
+            const res = await engine.chat.completions.create({
+                messages: [
+                    {role: "system", content: TEACHER_LOGIC},
+                    {role: "user", content: "Analyze these P4 answers: " + inputs + ". Correct them and explain the grammar rules used."}
+                ]
+            });
+            addMsg(res.choices[0].message.content, 'ai');
+        }
 
-            const review = await engine.chat.completions.create({ messages: [{role: "user", content: checkPrompt}] });
-            feedback.innerHTML = `<strong>Teacher Feedback:</strong><br>${review.choices[0].message.content.replace(/\n/g, '<br>')}`;
-            feedback.scrollIntoView({ behavior: 'smooth' });
+        function addMsg(txt, type) {
+            const area = document.getElementById("chat-area");
+            area.innerHTML += `<div class="m m-${type}">${txt}</div>`;
+            area.scrollTop = area.scrollHeight;
         }
 
         window.onload = init;
     </script>
 </body>
 </html>
+
