@@ -11,61 +11,54 @@
         :root { --p: #0984e3; --s: #00cec9; --bg: #f0f2f5; --panel: #ffffff; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Initial Loading */
-        #loader { position: fixed; inset: 0; background: white; z-index: 2000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        #loader { position: fixed; inset: 0; background: white; z-index: 2000; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 20px; }
         .progress-container { width: 350px; height: 12px; background: #eee; border-radius: 10px; margin: 20px; overflow: hidden; border: 1px solid #ddd; }
         #bar { width: 0%; height: 100%; background: linear-gradient(90deg, var(--p), var(--s)); transition: 0.3s; }
 
-        /* Dashboard Layout */
         .left-panel { flex: 1.2; display: flex; flex-direction: column; padding: 15px; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
         .right-panel { flex: 1; display: flex; flex-direction: column; background: #fff; border-left: 1px solid #dcdde1; }
-        .card { background: var(--panel); border-radius: 12px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); display: flex; flex-direction: column; height: 100%; }
+        .card { background: var(--panel); border-radius: 12px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); display: flex; flex-direction: column; height: 100%; overflow: hidden; }
 
-        /* Generation Indicators */
         .status-header { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
         .indicator { font-size: 11px; font-weight: bold; padding: 4px 8px; border-radius: 4px; background: #f1f2f6; color: #7f8c8d; }
         .indicator.active { background: #e3f2fd; color: var(--p); border: 1px solid var(--p); }
 
-        /* Tabs */
         .tabs { display: flex; border-bottom: 1px solid #eee; }
         .tab { flex: 1; padding: 15px; text-align: center; cursor: pointer; font-weight: 600; color: #7f8c8d; }
         .tab.active { color: var(--p); border-bottom: 3px solid var(--p); background: #f8f9fa; }
 
-        /* Content Areas */
-        #story-box { overflow-y: auto; line-height: 1.8; font-size: 1.1rem; color: #2f3640; flex: 1; }
+        #story-box { overflow-y: auto; line-height: 1.8; font-size: 1.1rem; color: #2f3640; flex: 1; padding-right: 10px; }
         #q-list { overflow-y: auto; flex: 1; padding: 10px 0; }
         .q-item { background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 5px solid var(--s); }
         input[type="text"] { width: 100%; padding: 10px; margin-top: 8px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
 
-        /* Chatbot */
         #chat-area { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; background: #fdfdfd; }
         .m { padding: 10px 14px; border-radius: 12px; max-width: 85%; font-size: 0.95rem; }
-        .m-ai { background: #f1f2f6; align-self: flex-start; border-bottom-left-radius: 2px; }
-        .m-user { background: var(--p); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .m-ai { background: #f1f2f6; align-self: flex-start; }
+        .m-user { background: var(--p); color: white; align-self: flex-end; }
 
         .hidden { display: none !important; }
         .btn { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; background: var(--p); color: white; transition: 0.2s; }
-        .btn:hover { opacity: 0.9; }
     </style>
 </head>
 <body>
 
     <div id="loader">
-        <h2 style="color:var(--p)">Initializing P4 Smart Engine</h2>
-        <p id="l-info">Loading Llama-3.2-3B...</p>
+        <h2 style="color:var(--p)">P4 AI Smart Engine</h2>
+        <p id="l-info">Checking WebGPU Compatibility...</p>
         <div class="progress-container"><div id="bar"></div></div>
-        <button id="start-btn" class="btn" style="display:none" onclick="launch()">Start Homework Session</button>
+        <button id="start-btn" class="btn" style="display:none" onclick="launch()">Start Session</button>
     </div>
 
     <div class="left-panel" id="reading-side">
         <div class="card">
             <div class="status-header">
                 <div id="st-reading" class="indicator">STORY: 0%</div>
-                <div id="st-vocab" class="indicator">VOCAB: 0%</div>
+                <div id="st-logic" class="indicator">LOGIC: 0%</div>
             </div>
-            <h2 id="story-title" style="margin-top:0">New Reading Mission</h2>
-            <div id="story-box">Preparing your text...</div>
-            <button class="btn" style="margin-top:20px" onclick="finishReading()">Hide Reading Panel ➔</button>
+            <h2 id="story-title" style="margin-top:0">Reading Passage</h2>
+            <div id="story-box">Loading...</div>
+            <button class="btn" style="margin-top:20px" onclick="finishReading()">Done Reading & Reading Qs ➔</button>
         </div>
     </div>
 
@@ -78,13 +71,13 @@
         <div id="view-q" style="padding:20px; display:flex; flex-direction:column; height:100%; box-sizing:border-box;">
             <div id="st-grammar" class="indicator" style="width:fit-content; margin-bottom:10px;">GRAMMAR: 0%</div>
             <div id="q-list"></div>
-            <button class="btn" style="width:100%; background:var(--s)" onclick="checkAnswers()">Analyze My Work</button>
+            <button class="btn" style="width:100%; background:var(--s)" onclick="checkAnswers()">Check My Work</button>
         </div>
 
         <div id="view-c" class="hidden" style="display:flex; flex-direction:column; height:100%;">
             <div id="chat-area"></div>
             <div style="padding:15px; border-top:1px solid #eee; display:flex; gap:10px;">
-                <input type="text" id="chat-in" placeholder="Ask a question about the rules..." style="flex:1; margin:0">
+                <input type="text" id="chat-in" placeholder="Ask the tutor..." style="flex:1;">
                 <button class="btn" onclick="sendChat()">Ask</button>
             </div>
         </div>
@@ -94,65 +87,70 @@
         let engine;
         const modelId = "Llama-3.2-3B-Instruct-q4f16_1-MLC";
 
-        // Textbook logic instructions for the AI
-        const TEACHER_LOGIC = `
-        You are an expert P4 English Teacher following the 'Longman Elect' curriculum style.
-        Rules to enforce:
-        1. PREPOSITIONS: Use 'at' for festivals (at Easter, at Christmas), 'on' for dates (on 5th Jan) and transport (on foot), 'in' for months/years/cities, 'by' for vehicles (by ferry).
-        2. PHRASAL VERBS: Focus on 'broke down', 'grow up', 'fill in', 'do up buttons', 'ring up'.
-        3. TENSES: Distinction between 'Yesterday' (Past Simple) vs 'Nowadays/Now' (Present Simple/Continuous) vs 'Soon/Next month' (Future with 'will' or 'is going to').
-        4. HONG KONG CONTEXT: Use locations like Tai O, Ngong Ping, Macau, or Zhuhai.
+        // Specialized Teacher Instructions for P4 (Longman Elect Style)
+        const SYSTEM_PROMPT = `
+        You are a P4 English Teacher. Follow these textbook rules strictly:
+        - PREPOSITIONS: 'at' for festivals (at Easter), 'on' for transport (on foot), 'by' for vehicles (by ferry), 'in' for months (in July).
+        - PHRASAL VERBS: 'broke down' (cars), 'grow up' (children), 'fill in' (forms).
+        - LOCATIONS: Hong Kong context (Tai O, Ocean Park, Ngong Ping).
+        - PUNCTUATION: Check for capital letters and question marks.
         `;
 
         async function init() {
+            // Check if WebGPU is actually enabled in browser
+            if (!navigator.gpu) {
+                document.getElementById("l-info").innerHTML = "<b style='color:red'>WebGPU Error:</b> Not supported. Use Chrome/Edge and enable Hardware Acceleration.";
+                return;
+            }
+            
             try {
                 engine = await window.CreateMLCEngine(modelId, {
                     initProgressCallback: (r) => {
                         const p = Math.round(r.progress * 100);
                         document.getElementById("bar").style.width = p + "%";
-                        document.getElementById("l-info").innerText = `Downloading Intelligence: ${p}%`;
+                        document.getElementById("l-info").innerText = `Downloading Brain: ${p}%`;
                         if(p === 100) document.getElementById("start-btn").style.display = "block";
                     }
                 });
-            } catch (e) { document.getElementById("l-info").innerText = "WebGPU Error!"; }
+            } catch (e) {
+                document.getElementById("l-info").innerText = "GPU Memory Error: Try closing other tabs.";
+            }
         }
 
         function launch() {
             document.getElementById("loader").style.display = "none";
-            generateMission();
+            generateContent();
         }
 
-        async function generateMission() {
-            // Stage 1: Reading Story (0-100% internal tracker)
-            setIndicator("st-reading", "25%", true);
+        async function generateContent() {
+            setIndicator("st-reading", "20%", true);
             const rRes = await engine.chat.completions.create({
                 messages: [
-                    {role: "system", content: TEACHER_LOGIC + " Write a reading passage about a family trip. Use 1st person 'I'. Keep it to 4-5 paragraphs. Use vocabulary like 'magnificent view' and 'seafood dinner'."},
-                    {role: "user", content: "Generate the story."}
+                    {role: "system", content: SYSTEM_PROMPT + " Write a 4-paragraph story for P4 student. Use first person."},
+                    {role: "user", content: "Write a new story."}
                 ]
             });
-            setIndicator("st-reading", "100%", false);
             document.getElementById("story-box").innerText = rRes.choices[0].message.content;
+            setIndicator("st-reading", "100%", false);
 
-            // Stage 2: Questions (Multi-category)
             setIndicator("st-grammar", "50%", true);
             const qRes = await engine.chat.completions.create({
                 messages: [
-                    {role: "system", content: TEACHER_LOGIC},
-                    {role: "user", content: "Based on the story provided, generate 12 questions: 4 on Tenses (mix past/present), 4 on Prepositions (at/in/on/by), 4 on Phrasal Verbs. Format: One question per line. No answers."}
+                    {role: "system", content: SYSTEM_PROMPT},
+                    {role: "user", content: "Based on that story, make 10 questions: 3 on Tenses, 3 on Prepositions (at/in/on/by), 2 on Phrasal Verbs, 2 on Reading. Question only."}
                 ]
             });
-            setIndicator("st-grammar", "100%", false);
             renderQuestions(qRes.choices[0].message.content);
+            setIndicator("st-grammar", "100%", false);
         }
 
         function renderQuestions(text) {
             const container = document.getElementById("q-list");
-            const lines = text.split("\n").filter(l => l.trim().length > 10);
+            const lines = text.split("\n").filter(l => l.trim().length > 5);
             container.innerHTML = lines.map((q, i) => `
                 <div class="q-item">
                     <b>Q${i+1}.</b> ${q}
-                    <input type="text" class="student-input">
+                    <input type="text" class="ans-input">
                 </div>
             `).join("");
         }
@@ -173,8 +171,6 @@
         function finishReading() {
             const side = document.getElementById("reading-side");
             side.style.flex = "0";
-            side.style.padding = "0";
-            side.style.margin = "0";
             side.style.opacity = "0";
             setTimeout(() => side.classList.add("hidden"), 500);
         }
@@ -183,35 +179,28 @@
             const input = document.getElementById("chat-in");
             if(!input.value) return;
             addMsg(input.value, 'user');
-            const query = input.value;
+            const val = input.value;
             input.value = "";
 
             const res = await engine.chat.completions.create({
-                messages: [
-                    {role: "system", content: TEACHER_LOGIC + " Explain rules simply for a 10 year old."},
-                    {role: "user", content: query}
-                ]
+                messages: [{role: "system", content: SYSTEM_PROMPT}, {role: "user", content: val}]
             });
             addMsg(res.choices[0].message.content, 'ai');
         }
 
         async function checkAnswers() {
             showTab('c');
-            addMsg("I'm checking your worksheet now...", 'ai');
-            const inputs = Array.from(document.querySelectorAll(".student-input")).map(i => i.value).join(" | ");
-            
+            addMsg("I am checking your answers against P4 grammar rules...", 'ai');
+            const answers = Array.from(document.querySelectorAll(".ans-input")).map(i => i.value).join(", ");
             const res = await engine.chat.completions.create({
-                messages: [
-                    {role: "system", content: TEACHER_LOGIC},
-                    {role: "user", content: "Analyze these P4 answers: " + inputs + ". Correct them and explain the grammar rules used."}
-                ]
+                messages: [{role: "system", content: SYSTEM_PROMPT}, {role: "user", content: "Check these answers: " + answers}]
             });
             addMsg(res.choices[0].message.content, 'ai');
         }
 
-        function addMsg(txt, type) {
+        function addMsg(t, type) {
             const area = document.getElementById("chat-area");
-            area.innerHTML += `<div class="m m-${type}">${txt}</div>`;
+            area.innerHTML += `<div class="m m-${type}">${t}</div>`;
             area.scrollTop = area.scrollHeight;
         }
 
@@ -219,4 +208,3 @@
     </script>
 </body>
 </html>
-
