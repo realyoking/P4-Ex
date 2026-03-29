@@ -51,12 +51,20 @@
         
         /* RESULTS DASHBOARD */
         .score-circle { width: 150px; height: 150px; border-radius: 50%; background: var(--bg); border: 10px solid var(--p); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; margin: 0 auto 20px; color: var(--p); }
+        .reading-scores { display: flex; justify-content: space-around; margin-top: 20px; padding: 15px; background: #fdfbf7; border-radius: 8px; }
         .analysis-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; }
         .stat-box { padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #eee; }
         .weakness-alert { background: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 5px solid #ffeeba; }
 
         /* STORY BOX */
         .story-box { background: #fdfbf7; padding: 25px; border-radius: 8px; border-left: 5px solid #f3a683; line-height: 1.8; font-size: 1.05rem; margin-bottom: 25px; }
+
+        /* CHATBOT & DICT STYLES */
+        .chat-box { height: 400px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: #fafafa; }
+        .msg { padding: 10px 15px; border-radius: 15px; margin-bottom: 10px; max-width: 80%; line-height: 1.4; }
+        .msg.user { background: var(--p); color: white; margin-left: auto; border-bottom-right-radius: 2px; }
+        .msg.ai { background: #e1e8ed; color: #2f3640; margin-right: auto; border-bottom-left-radius: 2px; }
+        .dict-result { margin-top: 20px; padding: 15px; background: #f1f2f6; border-radius: 8px; }
 
         .hidden { display: none !important; }
         .page-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
@@ -77,6 +85,8 @@
         <div class="nav-item" onclick="nav('read1')">Reading 1: Ocean Park</div>
         <div class="nav-item" onclick="nav('read2')">Reading 2: Science Museum</div>
         <div class="nav-item" onclick="nav('read3')">Reading 3: Dim Sum History</div>
+        <div class="nav-item" style="border-top: 1px solid #333; margin-top: 10px;" onclick="nav('chatbot')">🤖 AI Tutor Chat</div>
+        <div class="nav-item" onclick="nav('dict')">📚 Dictionary API</div>
         <div class="nav-item" style="margin-top: auto; border-top: 1px solid #333;" onclick="nav('dashboard')">Score Dashboard</div>
     </div>
 
@@ -98,7 +108,10 @@
         </div>
 
         <div id="view-read1" class="view-section hidden">
-            <div class="header-bar"><h2>Reading Passage 1: Ocean Park</h2></div>
+            <div class="header-bar">
+                <h2>Reading Passage 1: Ocean Park</h2>
+                <button class="btn btn-success" onclick="submitReading(1, read1)">Submit Reading 1</button>
+            </div>
             <div class="card">
                 <div class="story-box">
                     Last Sunday, my family visited Ocean Park in Hong Kong. It was a bright and sunny day. We rode the cable car up the hill. From the top, we saw the sparkling sea and tall green trees all around us. The park was busy with happy visitors.<br><br>
@@ -112,7 +125,10 @@
         </div>
 
         <div id="view-read2" class="view-section hidden">
-            <div class="header-bar"><h2>Reading Passage 2: The Science Museum</h2></div>
+            <div class="header-bar">
+                <h2>Reading Passage 2: The Science Museum</h2>
+                <button class="btn btn-success" onclick="submitReading(2, read2)">Submit Reading 2</button>
+            </div>
             <div class="card">
                 <div class="story-box">
                     Our school organized a trip to the Hong Kong Science Museum last Friday. I was extremely excited because I love learning about how things work. When we walked in, the first thing we saw was the giant Energy Machine. It is the tallest machine in the museum, and we watched a ball drop down long tracks, making loud sounds.<br><br>
@@ -124,7 +140,10 @@
         </div>
 
         <div id="view-read3" class="view-section hidden">
-            <div class="header-bar"><h2>Reading Passage 3: The History of Dim Sum</h2></div>
+            <div class="header-bar">
+                <h2>Reading Passage 3: The History of Dim Sum</h2>
+                <button class="btn btn-success" onclick="submitReading(3, read3)">Submit Reading 3</button>
+            </div>
             <div class="card">
                 <div class="story-box">
                     Dim sum is a traditional Chinese meal made up of small plates of dumplings and other snack dishes. The tradition of eating dim sum began hundreds of years ago along the ancient Silk Road. Travelers needed a place to rest, so teahouses opened along the road.<br><br>
@@ -135,10 +154,35 @@
             </div>
         </div>
 
+        <div id="view-chatbot" class="view-section hidden">
+            <div class="header-bar"><h2>🤖 AI Tutor Chat</h2></div>
+            <div class="card">
+                <div class="chat-box" id="chat-history">
+                    <div class="msg ai">Hello! I am your AI tutor. I know all the questions and readings on this website. How can I help you study today?</div>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="chat-input" placeholder="Ask me a question..." onkeypress="if(event.key === 'Enter') sendChatMessage()">
+                    <button class="btn" onclick="sendChatMessage()">Send</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-dict" class="view-section hidden">
+            <div class="header-bar"><h2>📚 Dictionary Lookup</h2></div>
+            <div class="card">
+                <p>Enter an English word to find its definition, part of speech, and an example.</p>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="dict-input" placeholder="Type a word (e.g., magnificent)..." onkeypress="if(event.key === 'Enter') searchDict()">
+                    <button class="btn btn-warning" onclick="searchDict()">Search API</button>
+                </div>
+                <div id="dict-output" class="dict-result hidden"></div>
+            </div>
+        </div>
+
         <div id="view-dashboard" class="view-section hidden">
             <div class="header-bar"><h2>Your Performance Dashboard</h2></div>
             <div class="card" id="dashboard-content">
-                <p style="text-align:center; color:#888;">Complete and submit the 100 Grammar Challenge to see your analytics here.</p>
+                <p style="text-align:center; color:#888;">Complete and submit the 100 Grammar Challenge and Readings to see your analytics here.</p>
             </div>
             
             <div id="bonus-section" class="card hidden" style="border-top: 5px solid var(--p);">
@@ -156,9 +200,18 @@
     let aiEngine = null;
     let isSafariMode = false;
     let currentPage = 0;
+    let chatMessages = [];
+    
+    // Track Reading Scores
+    let scoresDB = {
+        grammar: { score: 0, total: 100 },
+        read1: { score: 0, total: 3 },
+        read2: { score: 0, total: 3 },
+        read3: { score: 0, total: 3 },
+        categories: { prep:{total:0, right:0}, tense:{total:0, right:0}, phrasal:{total:0, right:0}, punct:{total:0, right:0}, vocab:{total:0, right:0} }
+    };
 
-    // --- DATA: 100 GRAMMAR SENTENCES (WITH ANSWERS & CATEGORIES) ---
-    // Categories: prep (Prepositions), tense (Tenses), phrasal (Phrasal Verbs), punct (Punctuation)
+    // --- DATA: 100 GRAMMAR SENTENCES ---
     const grammarBank = [
         {q: "1. We always eat chocolate eggs and have a big dinner _____ Easter.", h: "Festivals without the word 'day'.", a: "at", type: "prep"},
         {q: "2. My cousin Tim goes to school _____ foot.", h: "Walking preposition.", a: "on", type: "prep"},
@@ -271,35 +324,35 @@
         "vocab": [ "We sat on the _____.", "The view was _____.", "We watched a _____ player." ]
     };
 
-    // --- READING DATA ---
+    // --- READING DATA (ADDED ANSWERS) ---
     const read1 = [
-        {q: "1. How did they travel up the hill?", o: ["Bus", "Cable car", "Walking", "Boat"]},
-        {q: "2. What did the pandas eat?", o: ["Fish", "Bamboo", "Apples", "Bread"]},
-        {q: "3. What did the guide teach them?", o: ["Feed animals", "Recycle rubbish", "Run away", "Buy souvenirs"]}
+        {q: "1. How did they travel up the hill?", o: ["Bus", "Cable car", "Walking", "Boat"], a: "Cable car"},
+        {q: "2. What did the pandas eat?", o: ["Fish", "Bamboo", "Apples", "Bread"], a: "Bamboo"},
+        {q: "3. What did the guide teach them?", o: ["Feed animals", "Recycle rubbish", "Run away", "Buy souvenirs"], a: "Recycle rubbish"}
     ];
     const read2 = [
-        {q: "1. What was the tallest machine?", o: ["Silver ball", "3D TV", "Energy Machine", "Static Machine"]},
-        {q: "2. Why did their hair stand up?", o: ["Wind", "Static electricity", "Magic", "Water"]},
-        {q: "3. Why do astronauts float?", o: ["No gravity", "They have wings", "They hold breath", "Magic"]}
+        {q: "1. What was the tallest machine?", o: ["Silver ball", "3D TV", "Energy Machine", "Static Machine"], a: "Energy Machine"},
+        {q: "2. Why did their hair stand up?", o: ["Wind", "Static electricity", "Magic", "Water"], a: "Static electricity"},
+        {q: "3. Why do astronauts float?", o: ["No gravity", "They have wings", "They hold breath", "Magic"], a: "No gravity"}
     ];
     const read3 = [
-        {q: "1. Where did dim sum begin?", o: ["Hong Kong", "Silk Road", "Japan", "London"]},
-        {q: "2. What does 'yum cha' mean?", o: ["Eating food", "Drinking tea", "Family time", "Sleeping"]},
-        {q: "3. What dumpling has shrimp?", o: ["Siu mai", "Egg tart", "Har gow", "Pork bun"]}
+        {q: "1. Where did dim sum begin?", o: ["Hong Kong", "Silk Road", "Japan", "London"], a: "Silk Road"},
+        {q: "2. What does 'yum cha' mean?", o: ["Eating food", "Drinking tea", "Family time", "Sleeping"], a: "Drinking tea"},
+        {q: "3. What dumpling has shrimp?", o: ["Siu mai", "Egg tart", "Har gow", "Pork bun"], a: "Har gow"}
     ];
 
     // --- INITIALIZATION ---
     async function startApp() {
         document.getElementById("loader").style.display = "none";
         renderGrammar();
-        renderReadings("r1-qs", read1);
-        renderReadings("r2-qs", read2);
-        renderReadings("r3-qs", read3);
+        renderReadings("r1-qs", read1, 1);
+        renderReadings("r2-qs", read2, 2);
+        renderReadings("r3-qs", read3, 3);
+        setupAIContext();
     }
 
     window.onload = async () => {
         try {
-            // Test if WebGPU exists
             if (!navigator.gpu) throw new Error("No WebGPU");
             document.getElementById("sys-status").innerText = "WebGPU detected. Loading AI Engine...";
             aiEngine = await window.CreateMLCEngine("Llama-3.2-3B-Instruct-q4f16_1-MLC", {
@@ -308,7 +361,6 @@
                 }
             });
         } catch(e) {
-            // FALLBACK TO OFFLINE MODE (SAFARI FIX)
             isSafariMode = true;
             document.getElementById("sys-status").innerText = "Safari/No WebGPU Detected. Using High-Speed Offline Grader.";
             document.getElementById("bar").style.width = "100%";
@@ -323,6 +375,7 @@
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         document.getElementById(`view-${viewId}`).classList.remove('hidden');
         event.target.classList.add('active');
+        if (viewId === 'dashboard') updateDashboardUI();
     }
 
     // --- RENDER LOGIC ---
@@ -348,29 +401,53 @@
 
     function changePage(dir) { currentPage += dir; renderGrammar(); }
 
-    function renderReadings(containerId, data) {
+    function renderReadings(containerId, data, num) {
         document.getElementById(containerId).innerHTML = data.map((m, i) => `
-            <div class="q-item"><b>${m.q}</b>
-                ${m.o.map(opt => `<label class="radio-label"><input type="radio" name="${containerId}_${i}" value="${opt}"> ${opt}</label>`).join("")}
+            <div class="q-item" id="r${num}-qbox-${i}">
+                <b>${m.q}</b>
+                ${m.o.map(opt => `<label class="radio-label"><input type="radio" name="r${num}_${i}" value="${opt}"> ${opt}</label>`).join("")}
+                <div class="feedback" id="r${num}-f${i}"></div>
             </div>
         `).join("");
     }
 
-    // --- OFFLINE AUTO-GRADER & ANALYTICS ---
+    // --- GRADING & ANALYTICS ---
+    function submitReading(num, data) {
+        let score = 0;
+        data.forEach((m, i) => {
+            let selected = document.querySelector(`input[name="r${num}_${i}"]:checked`);
+            let qbox = document.getElementById(`r${num}-qbox-${i}`);
+            let fbox = document.getElementById(`r${num}-f${i}`);
+            
+            if (selected && selected.value === m.a) {
+                score++;
+                qbox.classList.add("correct");
+                qbox.classList.remove("wrong");
+                fbox.innerHTML = `<span class="correct-text">✓ Correct!</span>`;
+            } else {
+                qbox.classList.add("wrong");
+                qbox.classList.remove("correct");
+                fbox.innerHTML = `<span class="wrong-text">✗ Expected: ${m.a}</span>`;
+            }
+            fbox.style.display = "block";
+        });
+        
+        scoresDB[`read${num}`].score = score;
+        alert(`Reading ${num} submitted! You scored ${score}/${data.length}. Check the dashboard for details.`);
+    }
+
     function submitGrammarExam() {
         let score = 0;
-        let categories = { prep:{total:0, right:0}, tense:{total:0, right:0}, phrasal:{total:0, right:0}, punct:{total:0, right:0}, vocab:{total:0, right:0} };
+        let cats = { prep:{total:0, right:0}, tense:{total:0, right:0}, phrasal:{total:0, right:0}, punct:{total:0, right:0}, vocab:{total:0, right:0} };
         
-        // Grade all 100 questions internally (even if not on current page)
         grammarBank.forEach((item, idx) => {
             let userAns = document.getElementById(`g${idx}`) ? document.getElementById(`g${idx}`).value.trim().toLowerCase() : "";
             let correctAns = item.a.toLowerCase();
-            
-            categories[item.type].total++;
+            cats[item.type].total++;
 
             if(userAns === correctAns && userAns !== "") {
                 score++;
-                categories[item.type].right++;
+                cats[item.type].right++;
                 if(document.getElementById(`qbox-${idx}`)) {
                     document.getElementById(`qbox-${idx}`).classList.add("correct");
                     document.getElementById(`f${idx}`).innerHTML = `<span class="correct-text">✓ Correct!</span>`;
@@ -385,46 +462,147 @@
             }
         });
 
-        generateReportCard(score, categories);
+        scoresDB.grammar.score = score;
+        scoresDB.categories = cats;
+        alert("Grammar Exam Submitted! See Dashboard for full analytics.");
     }
 
-    function generateReportCard(score, cat) {
+    function updateDashboardUI() {
+        let cat = scoresDB.categories;
         let weakCat = "prep";
         let lowestP = 100;
-        
         let analysisHTML = "";
+        
         for (const [key, data] of Object.entries(cat)) {
             let p = data.total === 0 ? 0 : Math.round((data.right / data.total) * 100);
             if(p < lowestP) { lowestP = p; weakCat = key; }
-            
             let name = key === "prep" ? "Prepositions" : key === "tense" ? "Tenses" : key === "phrasal" ? "Phrasal Verbs" : key === "punct" ? "Punctuation" : "Vocabulary";
             analysisHTML += `<div class="stat-box"><h4>${name}</h4><h2>${p}%</h2></div>`;
         }
 
-        const dict = { "prep": "Prepositions (in, on, at)", "tense": "Past Tenses", "phrasal": "Phrasal Verbs (grow up, fill in)", "punct": "Capital Letters & Punctuation", "vocab": "Vocabulary" };
+        const dict = { "prep": "Prepositions (in, on, at)", "tense": "Past Tenses", "phrasal": "Phrasal Verbs", "punct": "Capital Letters & Punctuation", "vocab": "Vocabulary" };
 
         document.getElementById("dashboard-content").innerHTML = `
-            <div class="score-circle">${score}/100</div>
-            <h3 style="text-align:center">Performance Breakdown</h3>
+            <div style="display:flex; justify-content:center; gap:30px; text-align:center;">
+                <div>
+                    <div class="score-circle">${scoresDB.grammar.score}/100</div>
+                    <h4>Grammar Score</h4>
+                </div>
+            </div>
+            
+            <div class="reading-scores">
+                <div class="stat-box"><h4>Reading 1</h4><h2>${scoresDB.read1.score}/3</h2></div>
+                <div class="stat-box"><h4>Reading 2</h4><h2>${scoresDB.read2.score}/3</h2></div>
+                <div class="stat-box"><h4>Reading 3</h4><h2>${scoresDB.read3.score}/3</h2></div>
+            </div>
+
+            <h3 style="text-align:center; margin-top:30px;">Grammar Breakdown</h3>
             <div class="analysis-grid">${analysisHTML}</div>
+            
+            ${scoresDB.grammar.score > 0 ? `
             <div class="weakness-alert">
                 <strong>Attention Needed:</strong> Your lowest score was in <b>${dict[weakCat]}</b>. Let's fix that right now.
-            </div>
+            </div>` : ''}
         `;
 
-        // Generate Bonus Area
-        document.getElementById("bonus-section").classList.remove("hidden");
-        document.getElementById("bonus-desc").innerText = `Complete these 3 bonus questions focused on ${dict[weakCat]}:`;
-        
-        document.getElementById("bonus-list").innerHTML = bonusBank[weakCat].map((bq, i) => `
-            <div class="q-item"><b>Bonus Q${i+1}:</b> ${bq} <input type="text" class="bonus-ans" placeholder="Your answer..."></div>
-        `).join("");
-
-        nav('dashboard');
+        if (scoresDB.grammar.score > 0) {
+            document.getElementById("bonus-section").classList.remove("hidden");
+            document.getElementById("bonus-desc").innerText = `Complete these 3 bonus questions focused on ${dict[weakCat]}:`;
+            document.getElementById("bonus-list").innerHTML = bonusBank[weakCat].map((bq, i) => `
+                <div class="q-item"><b>Bonus Q${i+1}:</b> ${bq} <input type="text" class="bonus-ans" placeholder="Your answer..."></div>
+            `).join("");
+        }
     }
 
-    function checkBonus() {
-        alert("Great effort! Keep practicing your weak areas. Refresh the page to retake the main exam.");
+    function checkBonus() { alert("Great effort! Keep practicing your weak areas."); }
+
+    // --- AI CHATBOT SYSTEM ---
+    function setupAIContext() {
+        // Feed the grammar and readings to the bot's memory context
+        const contextStr = "I am a helpful AI tutor for P4 students. I know the website has 100 grammar questions and 3 reading passages. Here are the reading answers: Reading 1 (Ocean Park): 1. Cable car, 2. Bamboo, 3. Recycle rubbish. Reading 2 (Science Museum): 1. Energy Machine, 2. Static electricity, 3. No gravity. Reading 3 (Dim Sum): 1. Silk Road, 2. Drinking tea, 3. Har gow.";
+        chatMessages = [ { role: "system", content: contextStr } ];
+    }
+
+    function textToSpeech(text) {
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 1;
+            window.speechSynthesis.speak(utterance);
+        }
+    }
+
+    async function sendChatMessage() {
+        const inputField = document.getElementById("chat-input");
+        const text = inputField.value.trim();
+        if (!text) return;
+        
+        const chatBox = document.getElementById("chat-history");
+        chatBox.innerHTML += `<div class="msg user">${text}</div>`;
+        inputField.value = "";
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        if (!aiEngine) {
+            chatBox.innerHTML += `<div class="msg ai">I'm sorry, the AI engine is currently unavailable (Safari mode or loading). Please try again later.</div>`;
+            return;
+        }
+
+        chatMessages.push({ role: "user", content: text });
+        
+        // Create streaming AI response element
+        const botId = `ai-msg-${Date.now()}`;
+        chatBox.innerHTML += `<div class="msg ai" id="${botId}"></div>`;
+        const aiMsgDiv = document.getElementById(botId);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        try {
+            const chunks = await aiEngine.chat.completions.create({
+                messages: chatMessages,
+                stream: true
+            });
+
+            let fullReply = "";
+            for await (const chunk of chunks) {
+                const content = chunk.choices[0]?.delta?.content || "";
+                fullReply += content;
+                aiMsgDiv.innerText = fullReply;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+            
+            chatMessages.push({ role: "assistant", content: fullReply });
+            textToSpeech(fullReply); // Trigger TTS once typing finishes
+            
+        } catch(e) {
+            aiMsgDiv.innerText = "Error: Could not generate response.";
+        }
+    }
+
+    // --- DICTIONARY API ---
+    async function searchDict() {
+        const word = document.getElementById("dict-input").value.trim();
+        const outBox = document.getElementById("dict-output");
+        if (!word) return;
+        
+        outBox.classList.remove("hidden");
+        outBox.innerHTML = `<i>Searching for "${word}"...</i>`;
+        
+        try {
+            const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+            if (!res.ok) throw new Error("Word not found.");
+            
+            const data = await res.json();
+            const entry = data[0];
+            const meaning = entry.meanings[0];
+            const def = meaning.definitions[0];
+            
+            outBox.innerHTML = `
+                <h3 style="margin-top:0; color:var(--p);">${entry.word}</h3>
+                <p><strong>Part of Speech:</strong> ${meaning.partOfSpeech}</p>
+                <p><strong>Definition:</strong> ${def.definition}</p>
+                ${def.example ? `<p><strong>Example:</strong> "<i>${def.example}</i>"</p>` : ''}
+            `;
+        } catch (e) {
+            outBox.innerHTML = `<span style="color:var(--danger)">Sorry, we couldn't find the definition for "${word}". Check spelling and try again.</span>`;
+        }
     }
 </script>
 </body>
