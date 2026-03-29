@@ -2,294 +2,430 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>P4 English Ultimate Hub</title>
+    <title>P4 Ultimate V2.0: Adaptive Learning Hub</title>
     <script type="module">
         import { CreateMLCEngine } from "https://esm.run/@mlc-ai/web-llm";
         window.CreateMLCEngine = CreateMLCEngine;
     </script>
     <style>
-        :root { --p: #0984e3; --s: #00cec9; --bg: #f1f2f5; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        :root { --p: #4a69bd; --s: #60a3bc; --bg: #f5f6fa; --card: #ffffff; --text: #2f3640; --success: #78e08f; --danger: #e55039; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* SIDEBAR NAVIGATION */
+        .sidebar { width: 280px; background: #1e272e; color: white; display: flex; flex-direction: column; padding: 20px 0; box-shadow: 2px 0 10px rgba(0,0,0,0.1); z-index: 100; }
+        .brand { font-size: 1.5rem; font-weight: bold; text-align: center; margin-bottom: 30px; color: var(--s); }
+        .nav-item { padding: 15px 25px; cursor: pointer; transition: 0.2s; border-left: 4px solid transparent; font-weight: 500; }
+        .nav-item:hover { background: rgba(255,255,255,0.1); }
+        .nav-item.active { background: rgba(255,255,255,0.15); border-left-color: var(--s); color: var(--s); }
+
+        /* LOADER */
         #loader { position: fixed; inset: 0; background: white; z-index: 2000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .bar-bg { width: 300px; height: 10px; background: #eee; border-radius: 5px; overflow: hidden; margin: 20px; }
         #bar { width: 0%; height: 100%; background: var(--p); transition: 0.3s; }
-        .workspace { flex: 1.6; display: flex; flex-direction: column; padding: 20px; overflow-y: auto; gap: 20px; }
-        .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .tabs { display: flex; gap: 10px; margin-bottom: 15px; }
-        .tab-btn { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; background: #ddd; font-weight: bold; }
-        .tab-btn.active { background: var(--p); color: white; }
-        .q-item { background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 5px solid var(--p); margin-bottom: 12px; }
-        input, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; margin-top: 8px; box-sizing: border-box; }
-        .sidebar { width: 380px; background: white; border-left: 2px solid #ddd; display: flex; flex-direction: column; }
-        #chat-log { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .bubble { padding: 10px; border-radius: 8px; max-width: 85%; font-size: 0.9rem; }
-        .ai { background: #e3f2fd; align-self: flex-start; }
-        .user { background: var(--p); color: white; align-self: flex-end; }
-        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; background: var(--p); color: white; }
-        .btn-save { background: #27ae60; }
-        .story-box { background: #fffde7; padding: 15px; border-radius: 8px; border: 1px solid #ffe082; margin-bottom: 20px; line-height: 1.6; }
+        .sys-status { font-size: 0.9rem; color: #888; margin-top: 10px; }
+
+        /* MAIN WORKSPACE */
+        .workspace { flex: 1; display: flex; flex-direction: column; padding: 30px; overflow-y: auto; scroll-behavior: smooth; }
+        .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .card { background: var(--card); border-radius: 12px; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 25px; }
+        
+        /* QUESTION STYLES */
+        .q-item { background: #fff; padding: 18px; border-radius: 8px; border: 1px solid #e1e8ed; margin-bottom: 15px; position: relative; }
+        .q-item.correct { border-color: var(--success); background: #f1fff4; }
+        .q-item.wrong { border-color: var(--danger); background: #fff5f5; }
+        .hint-text { color: #7f8fa6; font-size: 0.85rem; display: block; margin-top: 6px; }
+        .feedback { font-weight: bold; margin-top: 8px; font-size: 0.9rem; display: none; }
+        .correct-text { color: var(--success); }
+        .wrong-text { color: var(--danger); }
+        
+        input[type="text"], textarea { width: 100%; padding: 12px; border: 1px solid #dcdde1; border-radius: 6px; margin-top: 10px; font-size: 1rem; box-sizing: border-box; transition: 0.2s; }
+        input[type="text"]:focus, textarea:focus { border-color: var(--p); outline: none; }
+        .radio-label { display: block; margin: 10px 0; cursor: pointer; padding: 8px; border-radius: 6px; transition: 0.2s; }
+        .radio-label:hover { background: #f5f6fa; }
+
+        /* BUTTONS */
+        .btn { padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; background: var(--p); color: white; transition: 0.2s; font-size: 1rem; }
+        .btn:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .btn-success { background: #44bd32; }
+        .btn-warning { background: #e1b12c; }
+        
+        /* RESULTS DASHBOARD */
+        .score-circle { width: 150px; height: 150px; border-radius: 50%; background: var(--bg); border: 10px solid var(--p); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: bold; margin: 0 auto 20px; color: var(--p); }
+        .analysis-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; }
+        .stat-box { padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #eee; }
+        .weakness-alert { background: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 5px solid #ffeeba; }
+
+        /* STORY BOX */
+        .story-box { background: #fdfbf7; padding: 25px; border-radius: 8px; border-left: 5px solid #f3a683; line-height: 1.8; font-size: 1.05rem; margin-bottom: 25px; }
+
+        .hidden { display: none !important; }
+        .page-controls { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
     </style>
 </head>
 <body>
 
     <div id="loader">
-        <h2>P4 Master Hub Loading...</h2>
+        <h2 id="l-text">Initializing Learning Hub...</h2>
         <div class="bar-bg"><div id="bar"></div></div>
-        <button class="btn" id="go-btn" style="display:none" onclick="document.getElementById('loader').style.display='none'">Start Lesson</button>
-    </div>
-
-    <div class="workspace">
-        <div class="tabs">
-            <button class="tab-btn active" onclick="showTab('grammar')">100 Grammar Sentences</button>
-            <button class="tab-btn" onclick="showTab('reading')">Ocean Park Reading</button>
-        </div>
-
-        <div id="tab-grammar" class="tab-content">
-            <div class="card">
-                <h3>P4 Grammar Bank (100 Questions)</h3>
-                <div id="grammar-list"></div>
-                <div style="display:flex; justify-content: space-between; margin-top:15px; position: sticky; bottom: 0; background: white; padding: 10px;">
-                    <button class="btn btn-save" onclick="saveProgress()">Save My Work</button>
-                    <button class="btn" style="background:var(--s)" onclick="analyzeGrammar()">Check Answers</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="tab-reading" class="tab-content" style="display:none">
-            <div class="card">
-                <h3>Reading Passage: A Visit to Ocean Park</h3>
-                <div class="story-box">
-                    Last Sunday, my family visited Ocean Park in Hong Kong. It was a bright and sunny day. We rode the cable car up the hill. From the top, we saw the sparkling sea and tall green trees all around us. The park was busy with happy visitors.
-First, we went to see the giant pandas. They were eating fresh bamboo and rolling playfully on the grass. The pandas looked very cute and relaxed. My little sister wanted to hug one, but the sign said it was not allowed.
-Next, we watched the exciting dolphin show. The smart dolphins jumped high out of the water and played with colourful balls. They waved their tails at the crowd. Everyone clapped and cheered because the show was wonderful.
-We also visited an exhibition about ocean pollution. There were pictures of dirty beaches and animals hurt by plastic rubbish. The guide explained that we must throw away rubbish correctly and recycle to protect sea turtles, fish and other creatures.
-At the end of the day, we bought souvenirs and took many photos. I felt tired but very happy. The visit taught me to care for nature and keep our environment clean. I hope we can return to Ocean Park soon.
-                </div>
-                
-                <h4>Part A: Multiple Choice</h4>
-                <div id="reading-mcqs"></div>
-
-                <h4>Part B: Short & Long Questions</h4>
-                <div id="reading-long"></div>
-                
-                <button class="btn btn-save" onclick="saveProgress()">Save Reading Answers</button>
-                <button class="btn" style="background:var(--s); margin-left:10px;" onclick="analyzeReading()">AI Mark Reading</button>
-            </div>
-        </div>
+        <div class="sys-status" id="sys-status">Checking WebGPU limits...</div>
+        <button class="btn hidden" id="go-btn" onclick="startApp()">Enter Classroom</button>
     </div>
 
     <div class="sidebar">
-        <div style="padding:15px; font-weight:bold; border-bottom:1px solid #ddd;">AI Super Tutor</div>
-        <div id="chat-log"><div class="bubble ai">Welcome! I've loaded your Ocean Park story and the 100 sentences. Ready when you are!</div></div>
-        <div style="padding:10px; display:flex; gap:5px;"><input type="text" id="c-in" style="flex:1;"><button class="btn" onclick="ask()">Ask</button></div>
+        <div class="brand">P4 Ultimate</div>
+        <div class="nav-item active" onclick="nav('grammar')">100 Grammar Challenge</div>
+        <div class="nav-item" onclick="nav('read1')">Reading 1: Ocean Park</div>
+        <div class="nav-item" onclick="nav('read2')">Reading 2: Science Museum</div>
+        <div class="nav-item" onclick="nav('read3')">Reading 3: Dim Sum History</div>
+        <div class="nav-item" style="margin-top: auto; border-top: 1px solid #333;" onclick="nav('dashboard')">Score Dashboard</div>
+    </div>
+
+    <div class="workspace">
+        
+        <div id="view-grammar" class="view-section">
+            <div class="header-bar">
+                <h2>100 Grammar Sentences</h2>
+                <button class="btn btn-success" onclick="submitGrammarExam()">Submit Exam for Grading</button>
+            </div>
+            <div class="card">
+                <div id="grammar-list"></div>
+                <div class="page-controls">
+                    <button class="btn" id="prevPage" onclick="changePage(-1)">Previous 20</button>
+                    <span id="pageInfo" style="font-weight:bold;">Page 1 / 5</span>
+                    <button class="btn" id="nextPage" onclick="changePage(1)">Next 20</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-read1" class="view-section hidden">
+            <div class="header-bar"><h2>Reading Passage 1: Ocean Park</h2></div>
+            <div class="card">
+                <div class="story-box">
+                    Last Sunday, my family visited Ocean Park in Hong Kong. It was a bright and sunny day. We rode the cable car up the hill. From the top, we saw the sparkling sea and tall green trees all around us. The park was busy with happy visitors.<br><br>
+                    First, we went to see the giant pandas. They were eating fresh bamboo and rolling playfully on the grass. The pandas looked very cute and relaxed. My little sister wanted to hug one, but the sign said it was not allowed.<br><br>
+                    Next, we watched the exciting dolphin show. The smart dolphins jumped high out of the water and played with colourful balls. They waved their tails at the crowd. Everyone clapped and cheered because the show was wonderful.<br><br>
+                    We also visited an exhibition about ocean pollution. There were pictures of dirty beaches and animals hurt by plastic rubbish. The guide explained that we must throw away rubbish correctly and recycle to protect sea turtles, fish and other creatures.<br><br>
+                    At the end of the day, we bought souvenirs and took many photos. I felt tired but very happy. The visit taught me to care for nature and keep our environment clean. I hope we can return to Ocean Park soon.
+                </div>
+                <div id="r1-qs"></div>
+            </div>
+        </div>
+
+        <div id="view-read2" class="view-section hidden">
+            <div class="header-bar"><h2>Reading Passage 2: The Science Museum</h2></div>
+            <div class="card">
+                <div class="story-box">
+                    Our school organized a trip to the Hong Kong Science Museum last Friday. I was extremely excited because I love learning about how things work. When we walked in, the first thing we saw was the giant Energy Machine. It is the tallest machine in the museum, and we watched a ball drop down long tracks, making loud sounds.<br><br>
+                    Later, we went to the electricity room. We safely touched a special silver ball that made our hair stand straight up! Everyone laughed at how funny we looked. The guide told us this is called static electricity.<br><br>
+                    Before leaving, we watched a 3D movie about space exploration. We learned that astronauts float in space because there is zero gravity. The trip was fantastic, and I learned a lot of new science facts.
+                </div>
+                <div id="r2-qs"></div>
+            </div>
+        </div>
+
+        <div id="view-read3" class="view-section hidden">
+            <div class="header-bar"><h2>Reading Passage 3: The History of Dim Sum</h2></div>
+            <div class="card">
+                <div class="story-box">
+                    Dim sum is a traditional Chinese meal made up of small plates of dumplings and other snack dishes. The tradition of eating dim sum began hundreds of years ago along the ancient Silk Road. Travelers needed a place to rest, so teahouses opened along the road.<br><br>
+                    At first, people only drank tea. But later, doctors discovered that drinking tea with food helps digestion, so teahouses began serving small snacks. This was the beginning of "yum cha," which means "drinking tea."<br><br>
+                    Today, dim sum is very famous in Hong Kong. Families love to gather on Sunday mornings to eat har gow (shrimp dumplings), siu mai, and egg tarts. It is not just about the delicious food; it is a time for families to talk and share their week together.
+                </div>
+                <div id="r3-qs"></div>
+            </div>
+        </div>
+
+        <div id="view-dashboard" class="view-section hidden">
+            <div class="header-bar"><h2>Your Performance Dashboard</h2></div>
+            <div class="card" id="dashboard-content">
+                <p style="text-align:center; color:#888;">Complete and submit the 100 Grammar Challenge to see your analytics here.</p>
+            </div>
+            
+            <div id="bonus-section" class="card hidden" style="border-top: 5px solid var(--p);">
+                <h3>🔥 Rescue Mission: Target Weakness</h3>
+                <p id="bonus-desc">Based on your results, you need more practice with...</p>
+                <div id="bonus-list"></div>
+                <button class="btn btn-warning" style="margin-top:15px;" onclick="checkBonus()">Check Bonus Answers</button>
+            </div>
+        </div>
+
     </div>
 
 <script>
-    let engine;
-    const modelId = "Llama-3.2-3B-Instruct-q4f16_1-MLC";
+    // --- SYSTEM STATE ---
+    let aiEngine = null;
+    let isSafariMode = false;
+    let currentPage = 0;
 
-    const sentences = [
-        "1. We always eat chocolate eggs and have a big dinner _____ Easter.",
-        "2. My cousin Tim goes to school _____ foot because it is near his home.",
-        "3. Last Sunday, my father's car suddenly _____ down on the bridge.",
-        "4. I want to _____ up and be a famous pilot one day.",
-        "5. Please _____ in your name and phone number on this application form.",
-        "6. We went to Ngong Ping _____ cable car to see the Big Buddha.",
-        "7. You must _____ up your buttons before you go out in the cold wind.",
-        "8. Sixty years ago, many people in Tai O lived in _____ houses.",
-        "9. We went to the Peak _____ bus to see the magnificent night view.",
-        "10. My sister was born _____ 5th January, which is in winter.",
-        "11. Hurry _____! The school bus is leaving the station now.",
-        "12. We saw many boats resting in the typhoon _____ last night.",
-        "13. I am very interested _____ learning about the history of Macau.",
-        "14. My mother bought a new _____ player so we can watch movies at home.",
-        "15. Last week, we _____ (visit) the Space Museum with our teacher.",
-        "16. The weather _____ (be) very sunny and hot during the summer holiday.",
-        "17. Sixty years ago, there _____ (not be) any mobile phones in Hong Kong.",
-        "18. I _____ (not see) the Big Buddha when I went to Ngong Ping last year.",
-        "19. We arrived _____ the airport two hours before our flight to Japan.",
-        "20. My cousin is very good _____ playing the piano and singing songs.",
-        "21. We sat on the _____ to wait for the ferry to arrive.",
-        "22. The view of the Victoria Harbour at night is truly _____.",
-        "23. Don't give _____! You can finish the English worksheet soon.",
-        "24. I stayed _____ home all day because it was raining heavily.",
-        "25. Yesterday, my mother _____ (be) very tired after a long day of work.",
-        "26. We _____ (go) to the beach last Saturday and swam in the sea.",
-        "27. I _____ (write) a letter to my aunt in Canada two days ago.",
-        "28. My grandfather _____ (buy) a new television set last night.",
-        "29. We _____ (eat) some delicious seafood during our trip to Tai O.",
-        "30. The students _____ (be) happy because there was no school yesterday.",
-        "31. I liked playing with toy cars when I _____ (be) a little boy.",
-        "32. Last Chinese New Year, we _____ (visit) our relatives in Tai Po.",
-        "33. My sister _____ (cry) because she lost her favorite doll yesterday.",
-        "34. The weather _____ (be) sunny during our school picnic last week.",
-        "35. We _____ (see) many stars in the sky when we went camping.",
-        "36. I _____ (do) my homework in the library after school yesterday.",
-        "37. The movie _____ (start) at seven o'clock, so we were late.",
-        "38. I _____ (feel) very excited when I won the competition yesterday.",
-        "39. They _____ (not be) at home when I called them last night.",
-        "40. Did you _____ (have) fun at Ocean Park last Sunday?",
-        "41. We usually go to the library _____ Saturdays to read books.",
-        "42. My brother likes to listen _____ music in his bedroom.",
-        "43. Look _____! There is a car coming very fast.",
-        "44. Please turn _____ the lights before you leave the classroom.",
-        "45. I am looking _____ my lost keys. Have you seen them?",
-        "46. We walked _____ the pier to catch the ferry to Central.",
-        "47. My uncle lives _____ a big flat in Shatin.",
-        "48. The cat is hiding _____ the table because it is scared.",
-        "49. We put the rubbish _____ the bin to keep the park clean.",
-        "50. I want to go to the supermarket _____ my mother today.",
-        "51. There are many tall buildings _____ Hong Kong Island.",
-        "52. We saw a magnificent _____ from the top of the mountain.",
-        "53. My car _____ down, so I had to call a mechanic for help.",
-        "54. When I _____ up, I want to travel around the world.",
-        "55. Can you help me _____ in this crossword puzzle?",
-        "56. It is important to _____ up your jacket when it is snowing.",
-        "57. I was born _____ October, which is a beautiful month.",
-        "58. We go to the airport _____ taxi because we have many bags.",
-        "59. The boats in the typhoon shelter look very small _____ the Peak.",
-        "60. My cousin is afraid _____ spiders and snakes.",
-        "61. We had a picnic _____ the park last Sunday afternoon.",
-        "62. I am good _____ Maths but I need to study harder for English.",
-        "63. The ferry arrived _____ the pier exactly at ten o'clock.",
-        "64. We stayed _____ a hotel during our holiday in Japan.",
-        "65. Last night, I _____ (watch) a funny cartoon on television.",
-        "66. She _____ (not go) to school because she had a fever.",
-        "67. We _____ (take) many photos of the stilt houses in Tai O.",
-        "68. My father _____ (cook) a delicious dinner for us yesterday.",
-        "69. Did you _____ (finish) your breakfast this morning?",
-        "70. I _____ (be) a P1 student three years ago.",
-        "71. We _____ (not have) any electronic games sixty years ago.",
-        "72. They _____ (travel) to Macau by ferry last month.",
-        "73. I _____ (see) a magnificent view of the harbour yesterday.",
-        "74. The train _____ (leave) the station five minutes ago.",
-        "75. We _____ (walk) to the park because it was a sunny day.",
-        "76. He _____ (give) me a beautiful birthday present last week.",
-        "77. I _____ (not like) eating vegetables when I was five.",
-        "78. Did she _____ (tell) you about the school trip?",
-        "79. We _____ (buy) some dried seafood in Tai O yesterday.",
-        "80. The children _____ (be) very noisy in the playground just now.",
-        "81. Correct: i live in hong kong with my family.",
-        "82. Correct: peters mum is a very kind teacher.",
-        "83. Correct: macau is a beautiful place to visit.",
-        "84. Correct: ouch cried the little boy.",
-        "85. Correct: we went to ocean park last sunday.",
-        "86. Correct: my birthday is in february.",
-        "87. Correct: where are you going asked mr chan?",
-        "88. Correct: help shouted the man on the boat.",
-        "89. Correct: its a sunny day today.",
-        "90. Correct: dont run in the corridor.",
-        "91. The view from the Peak is truly _____.",
-        "92. We saw many _____ houses in Tai O.",
-        "93. The boats stay in the typhoon _____ during a storm.",
-        "94. The car _____ down on the way to the airport.",
-        "95. We travel to Macau _____ ferry.",
-        "96. I go to school _____ foot.",
-        "97. We have a holiday _____ Easter.",
-        "98. I was born _____ 12th May.",
-        "99. Hurry _____ or we will be late for school.",
-        "100. I want to be a pilot when I _____ up."
+    // --- DATA: 100 GRAMMAR SENTENCES (WITH ANSWERS & CATEGORIES) ---
+    // Categories: prep (Prepositions), tense (Tenses), phrasal (Phrasal Verbs), punct (Punctuation)
+    const grammarBank = [
+        {q: "1. We always eat chocolate eggs and have a big dinner _____ Easter.", h: "Festivals without the word 'day'.", a: "at", type: "prep"},
+        {q: "2. My cousin Tim goes to school _____ foot.", h: "Walking preposition.", a: "on", type: "prep"},
+        {q: "3. Last Sunday, my father's car suddenly _____ down on the bridge.", h: "Past of break.", a: "broke", type: "phrasal"},
+        {q: "4. I want to _____ up and be a famous pilot one day.", h: "Become an adult.", a: "grow", type: "phrasal"},
+        {q: "5. Please _____ in your name and phone number on this application form.", h: "Complete a form.", a: "fill", type: "phrasal"},
+        {q: "6. We went to Ngong Ping _____ cable car to see the Big Buddha.", h: "Transport.", a: "by", type: "prep"},
+        {q: "7. You must _____ up your buttons before you go out in the cold wind.", h: "Fasten clothes.", a: "do", type: "phrasal"},
+        {q: "8. Sixty years ago, many people in Tai O lived in _____ houses.", h: "Houses on water poles.", a: "stilt", type: "vocab"},
+        {q: "9. We went to the Peak _____ bus.", h: "Transport.", a: "by", type: "prep"},
+        {q: "10. My sister was born _____ 5th January.", h: "Specific dates.", a: "on", type: "prep"},
+        {q: "11. Hurry _____! The school bus is leaving.", h: "Move faster.", a: "up", type: "phrasal"},
+        {q: "12. We saw many boats resting in the typhoon _____ last night.", h: "Safe harbor.", a: "shelter", type: "vocab"},
+        {q: "13. I am very interested _____ learning about history.", h: "Interested...", a: "in", type: "prep"},
+        {q: "14. My mother bought a new _____ player.", h: "Movie disc format.", a: "DVD", type: "vocab"},
+        {q: "15. Last week, we _____ (visit) the Space Museum.", h: "Past tense.", a: "visited", type: "tense"},
+        {q: "16. The weather _____ (be) very sunny during the holiday.", h: "Past 'is'.", a: "was", type: "tense"},
+        {q: "17. Sixty years ago, there _____ (not be) any mobile phones.", h: "Past plural negative.", a: "were not", type: "tense"},
+        {q: "18. I _____ (not see) the Big Buddha when I went to Ngong Ping.", h: "Past negative action.", a: "did not see", type: "tense"},
+        {q: "19. We arrived _____ the airport two hours before our flight.", h: "Specific location.", a: "at", type: "prep"},
+        {q: "20. My cousin is very good _____ playing the piano.", h: "Skill preposition.", a: "at", type: "prep"},
+        {q: "21. We sat on the _____ to wait for the ferry.", h: "Boat station.", a: "pier", type: "vocab"},
+        {q: "22. The view of the Victoria Harbour at night is truly _____.", h: "Very beautiful (M-word).", a: "magnificent", type: "vocab"},
+        {q: "23. Don't give _____! You can finish the worksheet.", h: "Quit.", a: "up", type: "phrasal"},
+        {q: "24. I stayed _____ home all day because it was raining.", h: "Location.", a: "at", type: "prep"},
+        {q: "25. Yesterday, my mother _____ (be) very tired.", h: "Past 'is'.", a: "was", type: "tense"},
+        {q: "26. We _____ (go) to the beach last Saturday.", h: "Past 'go'.", a: "went", type: "tense"},
+        {q: "27. I _____ (write) a letter to my aunt two days ago.", h: "Past 'write'.", a: "wrote", type: "tense"},
+        {q: "28. My grandfather _____ (buy) a new television set last night.", h: "Past 'buy'.", a: "bought", type: "tense"},
+        {q: "29. We _____ (eat) some delicious seafood in Tai O.", h: "Past 'eat'.", a: "ate", type: "tense"},
+        {q: "30. The students _____ (be) happy yesterday.", h: "Past 'are'.", a: "were", type: "tense"},
+        {q: "31. I liked playing with toy cars when I _____ (be) a little boy.", h: "Past 'am'.", a: "was", type: "tense"},
+        {q: "32. Last Chinese New Year, we _____ (visit) our relatives.", h: "Past 'visit'.", a: "visited", type: "tense"},
+        {q: "33. My sister _____ (cry) because she lost her doll.", h: "Past 'cry' (y to i).", a: "cried", type: "tense"},
+        {q: "34. The weather _____ (be) sunny last week.", h: "Past 'is'.", a: "was", type: "tense"},
+        {q: "35. We _____ (see) many stars in the sky.", h: "Past 'see'.", a: "saw", type: "tense"},
+        {q: "36. I _____ (do) my homework yesterday.", h: "Past 'do'.", a: "did", type: "tense"},
+        {q: "37. The movie _____ (start) at seven o'clock.", h: "Past 'start'.", a: "started", type: "tense"},
+        {q: "38. I _____ (feel) very excited when I won.", h: "Past 'feel'.", a: "felt", type: "tense"},
+        {q: "39. They _____ (not be) at home last night.", h: "Past 'are' negative.", a: "were not", type: "tense"},
+        {q: "40. Did you _____ (have) fun at Ocean Park?", h: "After 'did', base form.", a: "have", type: "tense"},
+        {q: "41. We usually go to the library _____ Saturdays.", h: "Days of week.", a: "on", type: "prep"},
+        {q: "42. My brother likes to listen _____ music.", h: "Follows listen.", a: "to", type: "prep"},
+        {q: "43. Look _____! There is a car coming.", h: "Be careful.", a: "out", type: "phrasal"},
+        {q: "44. Please turn _____ the lights before you leave.", h: "Stop power.", a: "off", type: "phrasal"},
+        {q: "45. I am looking _____ my lost keys.", h: "Searching.", a: "for", type: "phrasal"},
+        {q: "46. We walked _____ the pier to catch the ferry.", h: "Direction.", a: "to", type: "prep"},
+        {q: "47. My uncle lives _____ a big flat.", h: "Inside.", a: "in", type: "prep"},
+        {q: "48. The cat is hiding _____ the table.", h: "Beneath.", a: "under", type: "prep"},
+        {q: "49. We put the rubbish _____ the bin.", h: "Inside.", a: "in", type: "prep"},
+        {q: "50. I want to go to the supermarket _____ my mother.", h: "Together.", a: "with", type: "prep"},
+        {q: "51. There are many tall buildings _____ Hong Kong Island.", h: "Islands.", a: "on", type: "prep"},
+        {q: "52. We saw a magnificent _____ from the mountain.", h: "Scenery.", a: "view", type: "vocab"},
+        {q: "53. My car _____ down.", h: "Past 'break'.", a: "broke", type: "phrasal"},
+        {q: "54. When I _____ up, I want to travel.", h: "Get older.", a: "grow", type: "phrasal"},
+        {q: "55. Help me _____ in this puzzle.", h: "Complete.", a: "fill", type: "phrasal"},
+        {q: "56. Important to _____ up your jacket.", h: "Fasten.", a: "do", type: "phrasal"},
+        {q: "57. I was born _____ October.", h: "Months.", a: "in", type: "prep"},
+        {q: "58. We go _____ taxi.", h: "Transport.", a: "by", type: "prep"},
+        {q: "59. Look small _____ the Peak.", h: "Starting point.", a: "from", type: "prep"},
+        {q: "60. Afraid _____ spiders.", h: "Follows afraid.", a: "of", type: "prep"},
+        {q: "61. Picnic _____ the park.", h: "Location.", a: "in", type: "prep"},
+        {q: "62. Good _____ Maths.", h: "Skill.", a: "at", type: "prep"},
+        {q: "63. Arrived _____ the pier.", h: "Specific point.", a: "at", type: "prep"},
+        {q: "64. Stayed _____ a hotel.", h: "Accommodation.", a: "in", type: "prep"},
+        {q: "65. Last night, I _____ (watch) a cartoon.", h: "Past 'watch'.", a: "watched", type: "tense"},
+        {q: "66. She _____ (not go) to school.", h: "Past negative action.", a: "did not go", type: "tense"},
+        {q: "67. We _____ (take) many photos.", h: "Past 'take'.", a: "took", type: "tense"},
+        {q: "68. My father _____ (cook) dinner yesterday.", h: "Past 'cook'.", a: "cooked", type: "tense"},
+        {q: "69. Did you _____ (finish) breakfast?", h: "Base form.", a: "finish", type: "tense"},
+        {q: "70. I _____ (be) a P1 student ago.", h: "Past 'am'.", a: "was", type: "tense"},
+        {q: "71. We _____ (not have) games ago.", h: "Past negative 'have'.", a: "did not have", type: "tense"},
+        {q: "72. They _____ (travel) by ferry.", h: "Past 'travel'.", a: "travelled", type: "tense"},
+        {q: "73. I _____ (see) a magnificent view.", h: "Past 'see'.", a: "saw", type: "tense"},
+        {q: "74. The train _____ (leave) ago.", h: "Past 'leave'.", a: "left", type: "tense"},
+        {q: "75. We _____ (walk) to the park.", h: "Past 'walk'.", a: "walked", type: "tense"},
+        {q: "76. He _____ (give) me a present.", h: "Past 'give'.", a: "gave", type: "tense"},
+        {q: "77. I _____ (not like) vegetables.", h: "Past negative action.", a: "did not like", type: "tense"},
+        {q: "78. Did she _____ (tell) you?", h: "Base form.", a: "tell", type: "tense"},
+        {q: "79. We _____ (buy) seafood.", h: "Past 'buy'.", a: "bought", type: "tense"},
+        {q: "80. The children _____ (be) noisy.", h: "Past 'are'.", a: "were", type: "tense"},
+        {q: "81. Rewrite: i live in hong kong.", h: "Caps for I and Hong Kong.", a: "I live in Hong Kong.", type: "punct"},
+        {q: "82. Rewrite: peters mum is kind.", h: "Apostrophe for possession.", a: "Peter's mum is kind.", type: "punct"},
+        {q: "83. Rewrite: macau is beautiful.", h: "Caps for places.", a: "Macau is beautiful.", type: "punct"},
+        {q: "84. Rewrite: ouch cried the boy.", h: "Speech marks.", a: '"Ouch!" cried the boy.', type: "punct"},
+        {q: "85. Rewrite: we went last sunday.", h: "Caps for days.", a: "We went last Sunday.", type: "punct"},
+        {q: "86. Rewrite: my birthday is in february.", h: "Caps for months.", a: "My birthday is in February.", type: "punct"},
+        {q: "87. Rewrite: where are you asked mr chan?", h: "Speech marks and question.", a: '"Where are you?" asked Mr Chan.', type: "punct"},
+        {q: "88. Rewrite: help shouted the man.", h: "Speech marks.", a: '"Help!" shouted the man.', type: "punct"},
+        {q: "89. Rewrite: its a sunny day.", h: "Contraction.", a: "It's a sunny day.", type: "punct"},
+        {q: "90. Rewrite: dont run.", h: "Contraction.", a: "Don't run.", type: "punct"},
+        {q: "91. The view is truly _____.", h: "M-word.", a: "magnificent", type: "vocab"},
+        {q: "92. Many _____ houses in Tai O.", h: "Wooden poles.", a: "stilt", type: "vocab"},
+        {q: "93. Typhoon _____.", h: "Safe place.", a: "shelter", type: "vocab"},
+        {q: "94. Car _____ down.", h: "Past 'break'.", a: "broke", type: "phrasal"},
+        {q: "95. Travel _____ ferry.", h: "Transport.", a: "by", type: "prep"},
+        {q: "96. Go _____ foot.", h: "Walking.", a: "on", type: "prep"},
+        {q: "97. Holiday _____ Easter.", h: "Festival.", a: "at", type: "prep"},
+        {q: "98. Born _____ 12th May.", h: "Date.", a: "on", type: "prep"},
+        {q: "99. Hurry _____.", h: "Fast.", a: "up", type: "phrasal"},
+        {q: "100. Grow _____.", h: "Age.", a: "up", type: "phrasal"}
     ];
 
-    const mcqs = [
-        {q: "1. When did the family visit Ocean Park?", o: ["Last Monday", "Last Sunday", "Last Saturday", "School holiday"]},
-        {q: "2. How did the family go up the hill?", o: ["By bus", "By cable car", "Walking", "By boat"]},
-        {q: "3. What did the giant pandas eat?", o: ["Fish", "Bamboo", "Apples", "Bread"]},
-        {q: "4. Why could the family not hug the panda?", o: ["Too far", "Not allowed", "Sleeping", "No pandas"]},
-        {q: "5. What did the dolphins do?", o: ["Sang", "Jumped high with balls", "Ran", "Hid"]},
-        {q: "6. Why did the crowd cheer?", o: ["Pandas", "Dolphin show", "Souvenirs", "Lunch"]},
-        {q: "7. What problem did they learn about?", o: ["Too many people", "Pollution/Plastic", "No food", "Broken car"]},
-        {q: "8. What did the guide tell them?", o: ["Recycle/Proper trash", "Feed animals", "Run", "Take dolphins home"]},
-        {q: "9. How did the writer feel at the end?", o: ["Angry", "Tired but happy", "Bored", "Scared"]},
-        {q: "10. What is the main lesson?", o: ["Love nature/Environment", "Buy souvenirs", "Stay home", "Watch TV"]}
+    // --- BONUS QUESTIONS FOR ADAPTIVE LEARNING ---
+    const bonusBank = {
+        "prep": [ "I am hiding _____ the bed.", "My birthday is _____ Christmas.", "We go to school _____ bus." ],
+        "tense": [ "Yesterday, I _____ (play) football.", "They _____ (not eat) the pizza last night.", "Did you _____ (sleep) well?" ],
+        "phrasal": [ "Please turn _____ the radio.", "Don't give _____ now!", "Fill _____ the blank." ],
+        "punct": [ "rewrite: i love apples", "rewrite: dont touch that", "rewrite: hello said mary" ],
+        "vocab": [ "We sat on the _____.", "The view was _____.", "We watched a _____ player." ]
+    };
+
+    // --- READING DATA ---
+    const read1 = [
+        {q: "1. How did they travel up the hill?", o: ["Bus", "Cable car", "Walking", "Boat"]},
+        {q: "2. What did the pandas eat?", o: ["Fish", "Bamboo", "Apples", "Bread"]},
+        {q: "3. What did the guide teach them?", o: ["Feed animals", "Recycle rubbish", "Run away", "Buy souvenirs"]}
+    ];
+    const read2 = [
+        {q: "1. What was the tallest machine?", o: ["Silver ball", "3D TV", "Energy Machine", "Static Machine"]},
+        {q: "2. Why did their hair stand up?", o: ["Wind", "Static electricity", "Magic", "Water"]},
+        {q: "3. Why do astronauts float?", o: ["No gravity", "They have wings", "They hold breath", "Magic"]}
+    ];
+    const read3 = [
+        {q: "1. Where did dim sum begin?", o: ["Hong Kong", "Silk Road", "Japan", "London"]},
+        {q: "2. What does 'yum cha' mean?", o: ["Eating food", "Drinking tea", "Family time", "Sleeping"]},
+        {q: "3. What dumpling has shrimp?", o: ["Siu mai", "Egg tart", "Har gow", "Pork bun"]}
     ];
 
-    const longQs = [
-        "S1. How did the family travel up the hill and what could they see?",
-        "S2. Describe what the giant pandas were doing.",
-        "S3. What happened in the dolphin show?",
-        "S4. What did the family learn about ocean pollution?",
-        "S5. What two things did the family do at the end of the day?",
-        "L1. Describe the beginning of the visit. What made it exciting?",
-        "L2. Explain why the dolphin show was amazing.",
-        "L3. What did the family learn about protecting the ocean? Why is this important?",
-        "L4. How did the writer feel after the visit? Give reasons.",
-        "L5. Would you like to visit Ocean Park? Why or why not?"
-    ];
-
-    function showTab(t) {
-        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('tab-' + t).style.display = 'block';
-        event.currentTarget.classList.add('active');
+    // --- INITIALIZATION ---
+    async function startApp() {
+        document.getElementById("loader").style.display = "none";
+        renderGrammar();
+        renderReadings("r1-qs", read1);
+        renderReadings("r2-qs", read2);
+        renderReadings("r3-qs", read3);
     }
 
-    function renderAll() {
-        // Grammar
-        document.getElementById("grammar-list").innerHTML = sentences.map((s, i) => `
-            <div class="q-item"><b>Q${i+1}:</b> ${s}<input type="text" class="g-ans" id="g${i}"></div>
-        `).join("");
+    window.onload = async () => {
+        try {
+            // Test if WebGPU exists
+            if (!navigator.gpu) throw new Error("No WebGPU");
+            document.getElementById("sys-status").innerText = "WebGPU detected. Loading AI Engine...";
+            aiEngine = await window.CreateMLCEngine("Llama-3.2-3B-Instruct-q4f16_1-MLC", {
+                initProgressCallback: (r) => {
+                    document.getElementById("bar").style.width = Math.round(r.progress * 100) + "%";
+                }
+            });
+        } catch(e) {
+            // FALLBACK TO OFFLINE MODE (SAFARI FIX)
+            isSafariMode = true;
+            document.getElementById("sys-status").innerText = "Safari/No WebGPU Detected. Using High-Speed Offline Grader.";
+            document.getElementById("bar").style.width = "100%";
+        }
+        document.getElementById("l-text").innerText = "Ready!";
+        document.getElementById("go-btn").classList.remove("hidden");
+    };
 
-        // Reading MCQs
-        document.getElementById("reading-mcqs").innerHTML = mcqs.map((m, i) => `
-            <div class="q-item"><b>${m.q}</b><br>
-                ${m.o.map(opt => `<label style="display:block;"><input type="radio" name="mcq${i}" value="${opt}"> ${opt}</label>`).join("")}
+    // --- NAVIGATION ---
+    function nav(viewId) {
+        document.querySelectorAll('.view-section').forEach(v => v.classList.add('hidden'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById(`view-${viewId}`).classList.remove('hidden');
+        event.target.classList.add('active');
+    }
+
+    // --- RENDER LOGIC ---
+    function renderGrammar() {
+        const list = document.getElementById("grammar-list");
+        const start = currentPage * 20;
+        const pageItems = grammarBank.slice(start, start + 20);
+
+        list.innerHTML = pageItems.map((item, i) => `
+            <div class="q-item" id="qbox-${start+i}">
+                <b>${item.q}</b>
+                <span class="hint-text">Hint: ${item.h}</span>
+                <input type="text" id="g${start+i}" placeholder="Type answer...">
+                <div class="feedback" id="f${start+i}"></div>
             </div>
         `).join("");
 
-        // Reading Long
-        document.getElementById("reading-long").innerHTML = longQs.map((q, i) => `
-            <div class="q-item"><b>${q}</b><textarea class="r-ans" id="r${i}"></textarea></div>
+        document.getElementById("pageInfo").innerText = `Page ${currentPage+1} / 5`;
+        document.getElementById("prevPage").disabled = (currentPage === 0);
+        document.getElementById("nextPage").disabled = (currentPage === 4);
+        document.getElementById("view-grammar").scrollTop = 0;
+    }
+
+    function changePage(dir) { currentPage += dir; renderGrammar(); }
+
+    function renderReadings(containerId, data) {
+        document.getElementById(containerId).innerHTML = data.map((m, i) => `
+            <div class="q-item"><b>${m.q}</b>
+                ${m.o.map(opt => `<label class="radio-label"><input type="radio" name="${containerId}_${i}" value="${opt}"> ${opt}</label>`).join("")}
+            </div>
         `).join("");
     }
 
-    function saveProgress() {
-        const gAns = Array.from(document.querySelectorAll(".g-ans")).map(i => i.value);
-        const rAns = Array.from(document.querySelectorAll(".r-ans")).map(i => i.value);
-        localStorage.setItem("p4_grammar", JSON.stringify(gAns));
-        localStorage.setItem("p4_reading", JSON.stringify(rAns));
-        addMsg("Progress saved successfully!", "ai");
+    // --- OFFLINE AUTO-GRADER & ANALYTICS ---
+    function submitGrammarExam() {
+        let score = 0;
+        let categories = { prep:{total:0, right:0}, tense:{total:0, right:0}, phrasal:{total:0, right:0}, punct:{total:0, right:0}, vocab:{total:0, right:0} };
+        
+        // Grade all 100 questions internally (even if not on current page)
+        grammarBank.forEach((item, idx) => {
+            let userAns = document.getElementById(`g${idx}`) ? document.getElementById(`g${idx}`).value.trim().toLowerCase() : "";
+            let correctAns = item.a.toLowerCase();
+            
+            categories[item.type].total++;
+
+            if(userAns === correctAns && userAns !== "") {
+                score++;
+                categories[item.type].right++;
+                if(document.getElementById(`qbox-${idx}`)) {
+                    document.getElementById(`qbox-${idx}`).classList.add("correct");
+                    document.getElementById(`f${idx}`).innerHTML = `<span class="correct-text">✓ Correct!</span>`;
+                    document.getElementById(`f${idx}`).style.display = "block";
+                }
+            } else if(userAns !== "") {
+                if(document.getElementById(`qbox-${idx}`)) {
+                    document.getElementById(`qbox-${idx}`).classList.add("wrong");
+                    document.getElementById(`f${idx}`).innerHTML = `<span class="wrong-text">✗ Expected: ${item.a}</span>`;
+                    document.getElementById(`f${idx}`).style.display = "block";
+                }
+            }
+        });
+
+        generateReportCard(score, categories);
     }
 
-    async function init() {
-        renderAll();
-        // Load Saved
-        const savedG = JSON.parse(localStorage.getItem("p4_grammar"));
-        const savedR = JSON.parse(localStorage.getItem("p4_reading"));
-        if(savedG) document.querySelectorAll(".g-ans").forEach((input, i) => input.value = savedG[i] || "");
-        if(savedR) document.querySelectorAll(".r-ans").forEach((input, i) => input.value = savedR[i] || "");
+    function generateReportCard(score, cat) {
+        let weakCat = "prep";
+        let lowestP = 100;
+        
+        let analysisHTML = "";
+        for (const [key, data] of Object.entries(cat)) {
+            let p = data.total === 0 ? 0 : Math.round((data.right / data.total) * 100);
+            if(p < lowestP) { lowestP = p; weakCat = key; }
+            
+            let name = key === "prep" ? "Prepositions" : key === "tense" ? "Tenses" : key === "phrasal" ? "Phrasal Verbs" : key === "punct" ? "Punctuation" : "Vocabulary";
+            analysisHTML += `<div class="stat-box"><h4>${name}</h4><h2>${p}%</h2></div>`;
+        }
 
-        try {
-            engine = await window.CreateMLCEngine(modelId, { initProgressCallback: (r) => { 
-                document.getElementById("bar").style.width = (r.progress*100)+"%"; 
-                if(r.progress===1) document.getElementById("go-btn").style.display="block"; 
-            }});
-        } catch(e) { document.getElementById("loader").innerText = "WebGPU Required!"; }
+        const dict = { "prep": "Prepositions (in, on, at)", "tense": "Past Tenses", "phrasal": "Phrasal Verbs (grow up, fill in)", "punct": "Capital Letters & Punctuation", "vocab": "Vocabulary" };
+
+        document.getElementById("dashboard-content").innerHTML = `
+            <div class="score-circle">${score}/100</div>
+            <h3 style="text-align:center">Performance Breakdown</h3>
+            <div class="analysis-grid">${analysisHTML}</div>
+            <div class="weakness-alert">
+                <strong>Attention Needed:</strong> Your lowest score was in <b>${dict[weakCat]}</b>. Let's fix that right now.
+            </div>
+        `;
+
+        // Generate Bonus Area
+        document.getElementById("bonus-section").classList.remove("hidden");
+        document.getElementById("bonus-desc").innerText = `Complete these 3 bonus questions focused on ${dict[weakCat]}:`;
+        
+        document.getElementById("bonus-list").innerHTML = bonusBank[weakCat].map((bq, i) => `
+            <div class="q-item"><b>Bonus Q${i+1}:</b> ${bq} <input type="text" class="bonus-ans" placeholder="Your answer..."></div>
+        `).join("");
+
+        nav('dashboard');
     }
 
-    async function analyzeGrammar() {
-        addMsg("AI is checking your 100 sentences...", "ai");
-        const a = Array.from(document.querySelectorAll(".g-ans")).map((i, idx) => `Q${idx+1}:${i.value}`).join("|");
-        const res = await engine.chat.completions.create({ messages: [{role:"system", content:"P4 Teacher"}, {role:"user", content:"Check these 100 answers: " + a}] });
-        addMsg(res.choices[0].message.content, "ai");
+    function checkBonus() {
+        alert("Great effort! Keep practicing your weak areas. Refresh the page to retake the main exam.");
     }
-
-    async function analyzeReading() {
-        addMsg("AI is marking your Ocean Park reading answers...", "ai");
-        const a = Array.from(document.querySelectorAll(".r-ans")).map((i, idx) => `Q${idx+1}:${i.value}`).join("|");
-        const res = await engine.chat.completions.create({ messages: [{role:"system", content:"P4 Reading Teacher"}, {role:"user", content:"Mark these based on the Ocean Park passage: " + a}] });
-        addMsg(res.choices[0].message.content, "ai");
-    }
-
-    async function ask() {
-        const i = document.getElementById("c-in"); if(!i.value) return;
-        addMsg(i.value, "user");
-        const res = await engine.chat.completions.create({ messages: [{role:"system", content:"P4 Teacher"}, {role:"user", content:i.value}] });
-        addMsg(res.choices[0].message.content, "ai"); i.value = "";
-    }
-
-    function addMsg(t, c) { const l = document.getElementById("chat-log"); l.innerHTML += `<div class="bubble ${c}">${t}</div>`; l.scrollTop = l.scrollHeight; }
-    window.onload = init;
 </script>
 </body>
 </html>
